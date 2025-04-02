@@ -78,6 +78,17 @@ document.addEventListener("DOMContentLoaded", () => {
     window.verificarRelacionamento = verificarRelacionamentoLocal;
 });
 
+function carregarFotoSalva() {
+    // Verifica se há uma URL de imagem salva no Firestore
+    db.collection("relacionamento").doc("foto").get().then(doc => {
+        if (doc.exists && doc.data().imageUrl) {
+            document.getElementById("casal-img").src = doc.data().imageUrl;
+        }
+    }).catch(error => {
+        console.error("Erro ao carregar imagem:", error);
+    });
+}
+
 // Se precisar manter a função global para compatibilidade com código existente
 function verificarRelacionamento() {
     document.getElementById("iniciar")?.disabled 
