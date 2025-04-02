@@ -5,9 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const uploadBtn = document.getElementById("upload-foto");
     const downloadBtn = document.getElementById("download");
 
-    async function carregarFotoSalva() {
+    function carregarFotoSalva() {
         try {
-            const doc = await db.collection("relacionamento").doc("contador").get();
+            const doc = db.collection("relacionamento").doc("contador").get();
     
             if (doc.exists) {
                 const data = doc.data();
@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("❌ Erro ao buscar imagem no Firestore:", error);
         }
     }
-    window.carregarFotoSalva = carregarFotoSalva;
 
     // Função local que tem acesso a todos os elementos
     function verificarRelacionamentoLocal() {
