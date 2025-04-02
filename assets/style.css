@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&display=swap');
+
+body {
+    background: url('bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+    color: #fff;
+    margin: 0;
+}
+
+.container {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 30px;
+    width: 50%;
+    margin: 10% auto;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+h1 {
+    font-family: 'Great Vibes', cursive;
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 20px;
+    margin: 20px 0;
+}
+
+.btn {
+    display: inline-block;
+    background: #8B0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-family: 'Playfair Display', serif;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    background: #B22222;
+}
+
+.iniciar {
+    background: #4B0082;
+}
+
+.iniciar:hover {
+    background: #6A5ACD;
+}

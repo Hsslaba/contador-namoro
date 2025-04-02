@@ -7,15 +7,17 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-    <h1>Nosso Relacionamento</h1>
-    <p id="contador">Clique para iniciar!</p>
+    <div class="container">
+        <h1>Nosso Relacionamento</h1>
+        <p id="contador">Clique para iniciar!</p>
 
-    <!-- Botões de Login e Logout -->
-    <button id="login">Entrar com Google</button>
-    <button id="logout" style="display: none;">Sair</button>
+        <!-- Botões de Login e Logout -->
+        <button id="login" class="btn">Entrar com Google</button>
+        <button id="logout" class="btn" style="display: none;">Sair</button>
 
-    <!-- Botão de iniciar relacionamento -->
-    <button id="iniciar" disabled>Iniciar Contador</button>
+        <!-- Botão de iniciar relacionamento -->
+        <button id="iniciar" class="btn iniciar" disabled>Iniciar Contador</button>
+    </div>
 
     <!-- Scripts -->
     <script src="js/firebase-config.js"></script>
