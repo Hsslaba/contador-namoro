@@ -64,9 +64,9 @@ function salvarImagem(file) {
     
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "SEU_UPLOAD_PRESET"); // Configure no Cloudinary
+    formData.append("upload_preset", "contador-namoro"); // Configure no Cloudinary
 
-    fetch("https://api.cloudinary.com/v1_1/SEU_CLOUD_NAME/image/upload", {
+    fetch("https://api.cloudinary.com/v1_1/dsebfiq5m/image/upload", {
         method: "POST",
         body: formData
     })
