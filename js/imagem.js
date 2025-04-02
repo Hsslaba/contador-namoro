@@ -88,6 +88,8 @@ async function salvarUrlNoFirestore(imageUrl) {
         return;
     }
 
+    console.log("Salvando imagem no Firestore:", imageUrl);
+
     try {
         await db.collection("relacionamento").doc("foto").set({
             imageUrl: imageUrl,
@@ -95,9 +97,9 @@ async function salvarUrlNoFirestore(imageUrl) {
             uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
 
-        console.log("URL da imagem salva no Firestore!");
+        console.log("✅ URL da imagem salva no Firestore!");
     } catch (error) {
-        console.error("Erro ao salvar URL no Firestore:", error);
+        console.error("❌ Erro ao salvar URL no Firestore:", error);
     }
 }
 
@@ -108,11 +110,11 @@ async function carregarImagem() {
         if (doc.exists) {
             const data = doc.data();
             document.getElementById("casal-img").src = data.imageUrl;
-            console.log("Imagem carregada:", data.imageUrl);
+            console.log("✅ Imagem carregada do Firestore:", data.imageUrl);
         } else {
-            console.log("Nenhuma imagem encontrada no Firestore.");
+            console.log("⚠️ Nenhuma imagem encontrada no Firestore.");
         }
     } catch (error) {
-        console.error("Erro ao carregar imagem:", error);
+        console.error("❌ Erro ao carregar imagem:", error);
     }
 }
