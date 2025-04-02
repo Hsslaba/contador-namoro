@@ -18,6 +18,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 atualizarContador(dataAtual);
                 iniciarBtn.disabled = true;
                 iniciarBtn.textContent = "Relacionamento já iniciado";
+                
+                // Habilita o botão de upload de foto
+                document.getElementById("upload-foto").disabled = false;
+                document.getElementById("download").disabled = false;
+                
                 console.log("Data de início salva com sucesso!");
             })
             .catch(error => {
@@ -56,19 +61,23 @@ function calcularTempoDecorrido(dataInicio) {
     const meses = Math.floor(dias / 30.436875); // média de dias por mês
     const anos = Math.floor(dias / 365.25); // considerando anos bissextos
     
-    const diasRestantes = dias % 30.436875;
+    const segundosRestantes = segundos % 60;
+    const horasRestantes = horas % 24;
+    const diasRestantes = Math.floor(dias % 30.436875);
+    const mesesRestantes = meses % 12;
     
+    // Atualiza o painel de controle
     let textoTempo = "";
     
     if (anos > 0) {
         textoTempo += `${anos} ${anos === 1 ? 'ano' : 'anos'}`;
-        if (meses % 12 > 0) {
-            textoTempo += ` e ${meses % 12} ${meses % 12 === 1 ? 'mês' : 'meses'}`;
+        if (mesesRestantes > 0) {
+            textoTempo += ` e ${mesesRestantes} ${mesesRestantes === 1 ? 'mês' : 'meses'}`;
         }
     } else if (meses > 0) {
         textoTempo += `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
-        if (Math.floor(diasRestantes) > 0) {
-            textoTempo += ` e ${Math.floor(diasRestantes)} ${Math.floor(diasRestantes) === 1 ? 'dia' : 'dias'}`;
+        if (diasRestantes > 0) {
+            textoTempo += ` e ${diasRestantes} ${diasRestantes === 1 ? 'dia' : 'dias'}`;
         }
     } else {
         textoTempo += `${dias} ${dias === 1 ? 'dia' : 'dias'}`;
@@ -77,8 +86,15 @@ function calcularTempoDecorrido(dataInicio) {
     document.getElementById("detalhes").innerHTML = `
         <strong>Estamos juntos há:</strong> ${textoTempo}<br>
         <small>
-            ${dias} dias, ${horas % 24} horas, ${minutos % 60} minutos 
-            e ${segundos % 60} segundos de felicidade juntos.
+            ${dias} dias, ${horasRestantes} horas, ${minutos % 60} minutos 
+            e ${segundosRestantes} segundos de felicidade juntos.
         </small>
     `;
+    
+    // Atualiza o overlay da imagem
+    document.getElementById("anos").textContent = `${anos} ${anos === 1 ? 'ano' : 'anos'}.`;
+    document.getElementById("meses").textContent = `${mesesRestantes} ${mesesRestantes === 1 ? 'mês' : 'meses'}.`;
+    document.getElementById("dias").textContent = `${diasRestantes} ${diasRestantes === 1 ? 'dia' : 'dias'}.`;
+    document.getElementById("horas").textContent = `${horasRestantes} ${horasRestantes === 1 ? 'hora' : 'horas'}.`;
+    document.getElementById("segundos").textContent = `${segundosRestantes} ${segundosRestantes === 1 ? 'segundo' : 'segundos'}`;
 }

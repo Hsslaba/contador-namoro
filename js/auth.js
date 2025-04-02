@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginBtn = document.getElementById("login");
     const logoutBtn = document.getElementById("logout");
     const iniciarBtn = document.getElementById("iniciar");
+    const uploadBtn = document.getElementById("upload-foto");
+    const downloadBtn = document.getElementById("download");
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -17,9 +19,18 @@ document.addEventListener("DOMContentLoaded", () => {
             loginBtn.style.display = "block";
             logoutBtn.style.display = "none";
             iniciarBtn.disabled = true;
+            uploadBtn.disabled = true;
+            downloadBtn.disabled = true;
             
             document.getElementById("tempo").textContent = "Faça login para começar";
             document.getElementById("detalhes").textContent = "";
+            
+            // Reseta o overlay da imagem
+            document.getElementById("anos").textContent = "0 anos.";
+            document.getElementById("meses").textContent = "0 meses.";
+            document.getElementById("dias").textContent = "0 dias.";
+            document.getElementById("horas").textContent = "0 horas.";
+            document.getElementById("segundos").textContent = "0 segundos";
         }
     });
 
@@ -46,6 +57,13 @@ function verificarRelacionamento() {
             atualizarContador(doc.data().dataInicio.toDate());
             iniciarBtn.disabled = true;
             iniciarBtn.textContent = "Relacionamento já iniciado";
+            
+            // Habilita o botão de upload de foto e download
+            document.getElementById("upload-foto").disabled = false;
+            document.getElementById("download").disabled = false;
+            
+            // Verifica se há uma foto salva
+            carregarFotoSalva();
         } else {
             document.getElementById("tempo").textContent = "Nenhum relacionamento iniciado";
             document.getElementById("detalhes").textContent = "Clique no botão para iniciar";
@@ -53,5 +71,16 @@ function verificarRelacionamento() {
         }
     }).catch(error => {
         console.error("Erro ao verificar relacionamento:", error);
+    });
+}
+
+function carregarFotoSalva() {
+    // Verifica se há uma URL de imagem salva no Firestore
+    db.collection("relacionamento").doc("foto").get().then(doc => {
+        if (doc.exists && doc.data().imageUrl) {
+            document.getElementById("casal-img").src = doc.data().imageUrl;
+        }
+    }).catch(error => {
+        console.error("Erro ao carregar imagem:", error);
     });
 }

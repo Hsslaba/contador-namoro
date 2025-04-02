@@ -8,14 +8,33 @@
 </head>
 <body>
     <div class="container">
-        <h1>Nosso Relacionamento</h1>
-        <p id="tempo">Carregando...</p>
-        <p id="detalhes"></p>
+        <div id="foto-container" class="foto-container">
+            <div id="tempo-overlay" class="tempo-overlay">
+                <div id="tempo-detalhado" class="tempo-detalhado">
+                    <span id="anos">0 anos.</span>
+                    <span id="meses">0 meses.</span>
+                    <span id="dias">0 dias.</span>
+                    <span id="horas">0 horas.</span>
+                    <span id="segundos">0 segundos</span>
+                </div>
+            </div>
+            <!-- Imagem padrão ou carregada -->
+            <img id="casal-img" src="img/default-couple.jpg" alt="Foto do casal">
+        </div>
         
-        <div class="botoes">
-            <button id="iniciar" disabled>Iniciar Relacionamento</button>
-            <button id="login">Entrar com Google</button>
-            <button id="logout" style="display: none;">Sair</button>
+        <div class="controles">
+            <h1>Nosso Relacionamento</h1>
+            <p id="tempo">Carregando...</p>
+            <p id="detalhes"></p>
+            
+            <div class="botoes">
+                <button id="iniciar" disabled>Iniciar Relacionamento</button>
+                <button id="upload-foto" disabled>Carregar Nossa Foto</button>
+                <input type="file" id="foto-input" accept="image/*" style="display: none;">
+                <button id="download" disabled>Baixar Imagem</button>
+                <button id="login">Entrar com Google</button>
+                <button id="logout" style="display: none;">Sair</button>
+            </div>
         </div>
     </div>
 
@@ -23,11 +42,16 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <!-- html2canvas para capturar a imagem -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
     <!-- Scripts -->
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/firestore.js"></script>
+    <script src="js/imagem.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
