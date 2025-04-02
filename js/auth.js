@@ -5,6 +5,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const uploadBtn = document.getElementById("upload-foto");
     const downloadBtn = document.getElementById("download");
 
+    // Função local que tem acesso a todos os elementos
+    function verificarRelacionamentoLocal() {
+        db.collection("relacionamento").doc("contador").get().then(doc => {
+            if (doc.exists) {
+                atualizarContador(doc.data().dataInicio.toDate());
+                iniciarBtn.disabled = true;
+                iniciarBtn.textContent = "Relacionamento já iniciado";
+                
+                // Habilita o botão de upload de foto e download
+                uploadBtn.disabled = false;
+                downloadBtn.disabled = false;
+                
+                // Verifica se há uma foto salva
+                carregarFotoSalva();
+            } else {
+                document.getElementById("tempo").textContent = "Nenhum relacionamento iniciado";
+                document.getElementById("detalhes").textContent = "Clique no botão para iniciar";
+                iniciarBtn.disabled = false;
+            }
+        }).catch(error => {
+            console.error("Erro ao verificar relacionamento:", error);
+        });
+    }
+
     auth.onAuthStateChanged(user => {
         if (user) {
             console.log("Usuário logado:", user.displayName);
@@ -12,8 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
             logoutBtn.style.display = "block";
             iniciarBtn.disabled = false;
             
-            // Verifica se já existe um relacionamento iniciado
-            verificarRelacionamento();
+            // Usa a função local que tem acesso ao botão
+            verificarRelacionamentoLocal();
         } else {
             console.log("Nenhum usuário logado.");
             loginBtn.style.display = "block";
@@ -49,39 +73,14 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Erro ao sair:", error);
         });
     });
+    
+    // Se precisar chamar esta função de outro lugar, defina uma versão global
+    window.verificarRelacionamento = verificarRelacionamentoLocal;
 });
 
+// Se precisar manter a função global para compatibilidade com código existente
 function verificarRelacionamento() {
-    const iniciarBtn = document.getElementById("iniciar");
-    db.collection("relacionamento").doc("contador").get().then(doc => {
-        if (doc.exists) {
-            atualizarContador(doc.data().dataInicio.toDate());
-            iniciarBtn.disabled = true;
-            iniciarBtn.textContent = "Relacionamento já iniciado";
-            
-            // Habilita o botão de upload de foto e download
-            document.getElementById("upload-foto").disabled = false;
-            document.getElementById("download").disabled = false;
-            
-            // Verifica se há uma foto salva
-            carregarFotoSalva();
-        } else {
-            document.getElementById("tempo").textContent = "Nenhum relacionamento iniciado";
-            document.getElementById("detalhes").textContent = "Clique no botão para iniciar";
-            iniciarBtn.disabled = false;
-        }
-    }).catch(error => {
-        console.error("Erro ao verificar relacionamento:", error);
-    });
-}
-
-function carregarFotoSalva() {
-    // Verifica se há uma URL de imagem salva no Firestore
-    db.collection("relacionamento").doc("foto").get().then(doc => {
-        if (doc.exists && doc.data().imageUrl) {
-            document.getElementById("casal-img").src = doc.data().imageUrl;
-        }
-    }).catch(error => {
-        console.error("Erro ao carregar imagem:", error);
-    });
+    document.getElementById("iniciar")?.disabled 
+        ? console.log("Botão já está desabilitado") 
+        : window.verificarRelacionamento?.();
 }
