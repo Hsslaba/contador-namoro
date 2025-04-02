@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.onload = (e) => {
             document.getElementById("casal-img").src = e.target.result;
             
-            // Salvar a imagem no Firebase Storage
+            // Salvar a imagem no Cloudinary
             salvarImagem(file);
         };
         reader.readAsDataURL(file);
@@ -57,50 +57,35 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function salvarImagem(file) {
-    // Verifica se o usuário está logado
     if (!auth.currentUser) {
         alert("Você precisa estar logado para fazer upload de imagens.");
         return;
     }
     
-    // Referência para o Storage
-    const storageRef = firebase.storage().ref();
-    const imageRef = storageRef.child(`imagens/${auth.currentUser.uid}/casal.jpg`);
-    
-    // Upload da imagem
-    const uploadTask = imageRef.put(file);
-    
-    // Feedback de progresso do upload
-    uploadTask.on('state_changed', 
-        // Progresso
-        (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload: ' + progress + '%');
-        },
-        // Erro
-        (error) => {
-            console.error("Erro no upload:", error);
-            alert("Erro ao fazer upload da imagem. Tente novamente.");
-        },
-        // Completo
-        () => {
-            // Obter URL da imagem
-            uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-                console.log('Imagem disponível em:', downloadURL);
-                
-                // Salvar a URL no Firestore
-                db.collection("relacionamento").doc("foto").set({
-                    imageUrl: downloadURL,
-                    uploadedBy: auth.currentUser.displayName,
-                    uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
-                })
-                .then(() => {
-                    console.log("URL da imagem salva com sucesso!");
-                })
-                .catch(error => {
-                    console.error("Erro ao salvar URL:", error);
-                });
-            });
-        }
-    );
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "SEU_UPLOAD_PRESET"); // Configure no Cloudinary
+
+    fetch("https://api.cloudinary.com/v1_1/SEU_CLOUD_NAME/image/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Imagem salva:", data.secure_url);
+        
+        // Salvar a URL no Firestore
+        db.collection("relacionamento").doc("foto").set({
+            imageUrl: data.secure_url,
+            uploadedBy: auth.currentUser.displayName,
+            uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            console.log("URL da imagem salva com sucesso!");
+        })
+        .catch(error => {
+            console.error("Erro ao salvar URL:", error);
+        });
+    })
+    .catch(error => console.error("Erro ao fazer upload:", error));
 }
