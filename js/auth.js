@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function verificarRelacionamento() {
+    const iniciarBtn = document.getElementById("iniciar");
     db.collection("relacionamento").doc("contador").get().then(doc => {
         if (doc.exists) {
             atualizarContador(doc.data().dataInicio.toDate());
