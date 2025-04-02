@@ -1,10 +1,6 @@
-const auth = firebase.auth();
-const db = firebase.firestore();
-
 const loginBtn = document.getElementById("login");
 const logoutBtn = document.getElementById("logout");
 const iniciarBtn = document.getElementById("iniciar");
-const contadorTexto = document.getElementById("contador");
 
 // Verifica se o usuário está logado
 auth.onAuthStateChanged(user => {
@@ -32,27 +28,4 @@ loginBtn.addEventListener("click", () => {
 // Logout
 logoutBtn.addEventListener("click", () => {
     auth.signOut();
-});
-
-// Iniciar contador no Firestore
-iniciarBtn.addEventListener("click", () => {
-    const dataAtual = new Date();
-
-    db.collection("relacionamento").doc("contador").set({
-        dataInicio: firebase.firestore.Timestamp.fromDate(dataAtual)
-    })
-    .then(() => {
-        contadorTexto.innerHTML = "Relacionamento iniciado!";
-    })
-    .catch(error => {
-        console.error("Erro ao salvar:", error);
-    });
-});
-
-// Carregar contador salvo no Firestore
-db.collection("relacionamento").doc("contador").get().then(doc => {
-    if (doc.exists) {
-        const dataInicio = doc.data().dataInicio.toDate();
-        contadorTexto.innerHTML = `Começamos em: ${dataInicio.toLocaleDateString("pt-BR")}`;
-    }
 });
