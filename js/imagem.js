@@ -1,50 +1,56 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Configuração do Supabase
+const SUPABASE_URL = "https://xyyrtlslzhadigqbxzyl.supabase.co";  // Substitua pela sua URL
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5eXJ0bHNsemhhZGlncWJ4enlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MjU4NTcsImV4cCI6MjA1OTIwMTg1N30.5DcsU9MN6l4p3emt5VPUCKh2BOhDVmapOadndBQJF0k";    // Substitua pela sua chave anônima
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 document.addEventListener("DOMContentLoaded", () => {
     const uploadBtn = document.getElementById("upload-foto");
     const fotoInput = document.getElementById("foto-input");
     const downloadBtn = document.getElementById("download");
-    
+
     // Configurar evento para botão de upload
     uploadBtn.addEventListener("click", () => {
         fotoInput.click();
     });
-    
+
     // Configurar evento para quando uma foto é selecionada
-    fotoInput.addEventListener("change", (e) => {
+    fotoInput.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
-        // Verificar se é uma imagem
-        if (!file.type.match('image.*')) {
-            alert("Por favor, selecione uma imagem válida.");
-            return;
+
+        try {
+            const imageUrl = await salvarImagem(file);
+            if (imageUrl) {
+                document.getElementById("casal-img").src = imageUrl;
+
+                // Salvar a URL no Supabase Database
+                const { error } = await supabase
+                    .from("relacionamento")  // Tabela no Supabase
+                    .insert([{ 
+                        imageUrl: imageUrl,
+                        uploadedBy: auth.currentUser.displayName,
+                        uploadedAt: new Date()
+                    }]);
+
+                if (error) throw error;
+                console.log("Imagem salva no Supabase Database!");
+            }
+        } catch (error) {
+            console.error("Erro ao fazer upload:", error);
         }
-        
-        // Verificar tamanho (máximo 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert("Arquivo muito grande. O tamanho máximo é 5MB.");
-            return;
-        }
-        
-        // Mostrar preview da imagem
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById("casal-img").src = e.target.result;
-            
-            // Salvar a imagem no Cloudinary
-            salvarImagem(file);
-        };
-        reader.readAsDataURL(file);
     });
-    
+
     // Configurar evento para botão de download
     downloadBtn.addEventListener("click", () => {
         const fotoContainer = document.getElementById("foto-container");
-        
+
         // Usar html2canvas para capturar a imagem com o contador
         html2canvas(fotoContainer).then(canvas => {
             // Converter para URL de imagem
             const imgUrl = canvas.toDataURL("image/jpeg");
-            
+
             // Criar um link para download
             const link = document.createElement("a");
             link.href = imgUrl;
@@ -56,36 +62,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function salvarImagem(file) {
+// Função para salvar imagem no Supabase Storage
+async function salvarImagem(file) {
     if (!auth.currentUser) {
         alert("Você precisa estar logado para fazer upload de imagens.");
         return;
     }
-    
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "contador-namoro");
 
-    fetch("https://api.cloudinary.com/v1_1/dsebfiq5m/image/upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Imagem salva:", data.secure_url);
-        
-        // Salvar a URL no Firestore
-        db.collection("relacionamento").doc("foto").set({
-            imageUrl: data.secure_url,
-            uploadedBy: auth.currentUser.displayName,
-            uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-            console.log("URL da imagem salva com sucesso!");
-        })
-        .catch(error => {
-            console.error("Erro ao salvar URL:", error);
-        });
-    })
-    .catch(error => console.error("Erro ao fazer upload:", error));
+    const filePath = `imagens/${auth.currentUser.uid}/${file.name}`;
+    
+    // Upload para o Supabase Storage
+    let { data, error } = await supabase.storage.from("imagens").upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true
+    });
+
+    if (error) {
+        console.error("Erro ao fazer upload:", error);
+        return null;
+    }
+
+    // Gerar URL pública da imagem
+    const { data: publicUrl } = supabase.storage.from("imagens").getPublicUrl(filePath);
+    return publicUrl.publicUrl;
 }
