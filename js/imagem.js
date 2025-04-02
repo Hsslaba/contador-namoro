@@ -60,25 +60,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// 🔹 Salvar imagem no Imgur
 async function salvarImagem(file) {
-    const CLIENT_ID = "8cee1fdb46b14d3"; // Substitua pelo seu Client ID do Imgur
-
+    const CLIENT_ID = "8cee1fdb46b14d3";
+    
     const formData = new FormData();
     formData.append("image", file);
-
+    
     try {
         const response = await fetch("https://api.imgur.com/3/image", {
             method: "POST",
             headers: {
-                Authorization: `Client-ID ${CLIENT_ID}`,
+                "Authorization": `Client-ID ${CLIENT_ID}`
             },
-            body: formData,
+            body: formData
         });
-
+        
         const data = await response.json();
         if (data.success) {
-            return data.data.link;
+            const imageUrl = data.data.link;
+            console.log("Imagem enviada para o Imgur:", imageUrl);
+
+            // Salvar no Firestore
+            return db.collection("relacionamento").doc("contador").update({
+                foto: imageUrl
+            }).then(() => {
+                console.log("✅ URL da imagem salva no Firestore!");
+                carregarFotoSalva(); // Atualiza a imagem sem precisar recarregar a página
+                return imageUrl;
+            }).catch(error => {
+                console.error("❌ Erro ao salvar URL no Firestore:", error);
+                return null;
+            });
         } else {
             throw new Error("Erro ao enviar imagem para o Imgur");
         }
@@ -87,6 +99,7 @@ async function salvarImagem(file) {
         return null;
     }
 }
+
 
 // 🔹 Salvar link da imagem no Firestore
 async function salvarNoFirestore(imageUrl) {
