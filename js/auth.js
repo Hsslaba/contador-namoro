@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Erro ao carregar imagem:", error);
         });
     }
-    
+    window.carregarFotoSalva = carregarFotoSalva;
+
     // Função local que tem acesso a todos os elementos
     function verificarRelacionamentoLocal() {
         db.collection("relacionamento").doc("contador").get().then(doc => {
