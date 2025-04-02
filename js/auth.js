@@ -76,18 +76,20 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Se precisar chamar esta função de outro lugar, defina uma versão global
     window.verificarRelacionamento = verificarRelacionamentoLocal;
-});
 
-function carregarFotoSalva() {
-    // Verifica se há uma URL de imagem salva no Firestore
-    db.collection("relacionamento").doc("foto").get().then(doc => {
-        if (doc.exists && doc.data().imageUrl) {
-            document.getElementById("casal-img").src = doc.data().imageUrl;
-        }
-    }).catch(error => {
-        console.error("Erro ao carregar imagem:", error);
-    });
-}
+
+    function carregarFotoSalva() {
+        // Verifica se há uma URL de imagem salva no Firestore
+        db.collection("relacionamento").doc("foto").get().then(doc => {
+            if (doc.exists && doc.data().imageUrl) {
+                document.getElementById("casal-img").src = doc.data().imageUrl;
+            }
+        }).catch(error => {
+            console.error("Erro ao carregar imagem:", error);
+        });
+    }
+    
+});
 
 // Se precisar manter a função global para compatibilidade com código existente
 function verificarRelacionamento() {
@@ -95,3 +97,4 @@ function verificarRelacionamento() {
         ? console.log("Botão já está desabilitado") 
         : window.verificarRelacionamento?.();
 }
+
