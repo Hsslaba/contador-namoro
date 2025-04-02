@@ -1,6 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Configuração do Supabase
 const SUPABASE_URL = "https://xyyrtlslzhadigqbxzyl.supabase.co";  // Substitua pela sua URL
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5eXJ0bHNsemhhZGlncWJ4enlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MjU4NTcsImV4cCI6MjA1OTIwMTg1N30.5DcsU9MN6l4p3emt5VPUCKh2BOhDVmapOadndBQJF0k";    // Substitua pela sua chave anônima
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
