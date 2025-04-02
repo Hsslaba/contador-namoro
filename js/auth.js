@@ -6,24 +6,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const downloadBtn = document.getElementById("download");
 
     function carregarFotoSalva() {
-        try {
-            const doc = db.collection("relacionamento").doc("contador").get();
-    
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.foto) {
-                    console.log("🔹 Imagem carregada do Firestore:", data.foto);
-                    document.getElementById("casal-img").src = data.foto;
-                } else {
-                    console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
-                }
+        db.collection("relacionamento").doc("contador").get().then(doc => {
+            if (doc.exists && doc.data().foto) {
+                const imageUrl = doc.data().foto;
+                console.log("🔹 URL da imagem recuperada do Firestore:", imageUrl);
+
+                const imgElement = document.getElementById("casal-img");
+                imgElement.onload = () => console.log("✅ Imagem carregada com sucesso!");
+                imgElement.onerror = () => console.error("❌ Erro ao carregar a imagem!");
+                imgElement.src = imageUrl;
             } else {
-                console.warn("⚠ Documento 'contador' não encontrado.");
+                console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
             }
-        } catch (error) {
-            console.error("❌ Erro ao buscar imagem no Firestore:", error);
-        }
+        }).catch(error => {
+            console.error("Erro ao carregar imagem:", error);
+        });
     }
+    window.carregarFotoSalva = carregarFotoSalva;
 
     // Função local que tem acesso a todos os elementos
     function verificarRelacionamentoLocal() {
