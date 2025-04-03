@@ -58,7 +58,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (doc.exists) {
                 const dados = doc.data();
                 atualizarContador(dados.dataInicio.toDate());
-    
+                iniciarBtn.disabled = true;
+                iniciarBtn.textContent = "Relacionamento já iniciado";
+                
+                uploadBtn.disabled = false;
+                downloadBtn.disabled = false;
                 if (dados.foto) {
                     document.getElementById("casal-img").src = dados.foto;
                 } else {
