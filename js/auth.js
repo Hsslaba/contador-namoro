@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 imgElement.src = imageUrl;
             } else {
                 console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
-                document.getElementById("casal-img").src = ""; // Remover imagem se não houver
+                document.getElementById("casal-img").src = ""; // Remove imagem se não houver
             }
         }).catch(error => {
             console.error("Erro ao carregar imagem:", error);
@@ -25,31 +25,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.carregarFotoSalva = carregarFotoSalva;
 
-    function verificarOuCriarRelacionamento(userId) {
-        const userRef = db.collection("relacionamento").doc(userId);
-    
-        userRef.get().then(doc => {
+    function verificarRelacionamentoLocal(userId) {
+        db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists) {
-                console.log("🔹 Relacionamento encontrado para o usuário:", userId);
-                carregarRelacionamento(userId);
+                const dados = doc.data();
+                if (dados.dataInicio) {
+                    atualizarContador(dados.dataInicio.toDate());
+                    iniciarBtn.disabled = true;
+                    iniciarBtn.textContent = "Relacionamento já iniciado";
+                } else {
+                    iniciarBtn.disabled = false;
+                }
+
+                uploadBtn.disabled = false;
+                downloadBtn.disabled = false;
+
+                carregarFotoSalva(userId);
             } else {
-                console.log("⚠ Nenhum relacionamento encontrado. Criando um novo...");
-                criarNovoRelacionamento(userId);
+                console.log("⚠ Nenhum relacionamento encontrado. Aguardando usuário iniciar.");
+                iniciarBtn.disabled = false;
+                uploadBtn.disabled = false; // Permitir upload antes de iniciar o relacionamento
+                downloadBtn.disabled = true;
+                carregarFotoSalva(userId);
             }
         }).catch(error => {
-            console.error("Erro ao buscar relacionamento:", error);
+            console.error("Erro ao verificar relacionamento:", error);
         });
     }
 
-    function criarNovoRelacionamento(userId) {
+    function iniciarRelacionamento(userId) {
         db.collection("relacionamento").doc(userId).set({
             dataInicio: firebase.firestore.Timestamp.now(),
             foto: "" // Começa sem foto
         }).then(() => {
-            console.log("✅ Novo relacionamento criado para o usuário:", userId);
+            console.log("✅ Relacionamento iniciado para o usuário:", userId);
             carregarRelacionamento(userId);
         }).catch(error => {
-            console.error("Erro ao criar novo relacionamento:", error);
+            console.error("Erro ao iniciar relacionamento:", error);
         });
     }
 
@@ -60,9 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 atualizarContador(dados.dataInicio.toDate());
                 iniciarBtn.disabled = true;
                 iniciarBtn.textContent = "Relacionamento já iniciado";
-                
+
                 uploadBtn.disabled = false;
                 downloadBtn.disabled = false;
+
                 if (dados.foto) {
                     document.getElementById("casal-img").src = dados.foto;
                 } else {
@@ -75,27 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function verificarRelacionamentoLocal(userId) {
-        db.collection("relacionamento").doc(userId).get().then(doc => {
-            if (doc.exists) {
-                atualizarContador(doc.data().dataInicio.toDate());
-                iniciarBtn.disabled = true;
-                iniciarBtn.textContent = "Relacionamento já iniciado";
-                
-                uploadBtn.disabled = false;
-                downloadBtn.disabled = false;
-                
-                carregarFotoSalva(userId);
-            } else {
-                document.getElementById("tempo").textContent = "Nenhum relacionamento iniciado";
-                document.getElementById("detalhes").textContent = "Clique no botão para iniciar";
-                iniciarBtn.disabled = false;
-            }
-        }).catch(error => {
-            console.error("Erro ao verificar relacionamento:", error);
-        });
-    }
-
     auth.onAuthStateChanged(user => {
         if (user) {
             console.log("Usuário logado:", user.displayName);
@@ -103,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
             logoutBtn.style.display = "block";
             iniciarBtn.disabled = false;
 
-            verificarOuCriarRelacionamento(user.uid);
+            verificarRelacionamentoLocal(user.uid); // Agora não inicia automaticamente
         } else {
             console.log("Nenhum usuário logado.");
             loginBtn.style.display = "block";
@@ -111,10 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
             iniciarBtn.disabled = true;
             uploadBtn.disabled = true;
             downloadBtn.disabled = true;
-            
+
             document.getElementById("tempo").textContent = "Faça login para começar";
             document.getElementById("detalhes").textContent = "";
-            
+
             document.getElementById("anos").textContent = "0 anos.";
             document.getElementById("meses").textContent = "0 meses.";
             document.getElementById("dias").textContent = "0 dias.";
@@ -138,7 +130,18 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Erro ao sair:", error);
         });
     });
-    
+
+    iniciarBtn.addEventListener("click", () => {
+        const user = auth.currentUser;
+        if (user) {
+            if (confirm("Deseja iniciar o relacionamento? Isso salvará a data permanentemente.")) {
+                iniciarRelacionamento(user.uid);
+            }
+        } else {
+            alert("Você precisa estar logado para iniciar um relacionamento.");
+        }
+    });
+
     window.verificarRelacionamento = () => {
         const user = auth.currentUser;
         if (user) {
@@ -150,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function verificarRelacionamento() {
-    document.getElementById("iniciar")?.disabled 
-        ? console.log("Botão já está desabilitado") 
+    document.getElementById("iniciar")?.disabled
+        ? console.log("Botão já está desabilitado")
         : window.verificarRelacionamento?.();
 }
