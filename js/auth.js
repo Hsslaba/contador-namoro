@@ -10,14 +10,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (doc.exists && doc.data().foto) {
                 const imageUrl = doc.data().foto;
                 console.log("🔹 URL da imagem recuperada do Firestore:", imageUrl);
-
+    
                 const imgElement = document.getElementById("casal-img");
                 imgElement.onload = () => console.log("✅ Imagem carregada com sucesso!");
-                imgElement.onerror = () => console.error("❌ Erro ao carregar a imagem!");
-                imgElement.src = imageUrl;
+                imgElement.onerror = () => console.error("❌ Erro ao carregar a imagem!", imageUrl);
+                imgElement.src = imageUrl; // Atualiza a imagem apenas se a URL for válida
             } else {
                 console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
-                document.getElementById("casal-img").src = ""; // Remove imagem se não houver
+                document.getElementById("casal-img").src = ""; // Limpa a imagem se não houver uma salva
             }
         }).catch(error => {
             console.error("Erro ao carregar imagem:", error);
@@ -69,10 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
                 db.collection("relacionamento").doc(userId).update({
                     dataInicio: firebase.firestore.Timestamp.now(),
-                    foto: fotoExistente // Mantém a imagem ao iniciar o relacionamento
+                    foto: fotoExistente // Não sobrescreve a foto já salva
                 }).then(() => {
                     console.log("✅ Relacionamento iniciado sem perder a foto!");
-                    carregarRelacionamento(userId);
+                    carregarRelacionamento(userId); // Recarrega os dados após iniciar
                 }).catch(error => {
                     console.error("❌ Erro ao iniciar relacionamento:", error);
                 });
