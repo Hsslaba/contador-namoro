@@ -12,17 +12,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("🔹 URL da imagem recuperada do Firestore:", imageUrl);
     
                 const imgElement = document.getElementById("casal-img");
+    
+                imgElement.src = imageUrl;
+    
                 imgElement.onload = () => console.log("✅ Imagem carregada com sucesso!");
-                imgElement.onerror = () => console.error("❌ Erro ao carregar a imagem!", imageUrl);
-                imgElement.src = imageUrl; // Atualiza a imagem apenas se a URL for válida
+                imgElement.onerror = () => {
+                    console.error("❌ Erro ao carregar a imagem! Tentando novamente...");
+                    setTimeout(() => carregarFotoSalva(userId), 1000); // Tenta carregar novamente após 1s
+                };
             } else {
                 console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
-                document.getElementById("casal-img").src = ""; // Limpa a imagem se não houver uma salva
+                document.getElementById("casal-img").src = "default.jpg"; // Define uma imagem padrão
             }
         }).catch(error => {
             console.error("Erro ao carregar imagem:", error);
         });
     }
+    
     window.carregarFotoSalva = carregarFotoSalva;
 
     function salvarFoto(userId, imageUrl) {
@@ -35,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
         db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists) {
                 const dados = doc.data();
-
+    
                 if (dados.dataInicio) {
                     atualizarContador(dados.dataInicio.toDate());
                     iniciarBtn.disabled = true;
@@ -43,13 +49,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     iniciarBtn.disabled = false;
                 }
-
+    
                 uploadBtn.disabled = false;
                 downloadBtn.disabled = false;
                 carregarFotoSalva(userId);
             } else {
-                console.log("⚠ Nenhum relacionamento encontrado. Criando entrada só para imagem...");
-                db.collection("relacionamento").doc(userId).set({}, { merge: true }).then(() => {
+                console.log("⚠ Nenhum relacionamento encontrado. Criando entrada vazia...");
+                db.collection("relacionamento").doc(userId).set({ foto: "" }, { merge: true }).then(() => {
                     carregarFotoSalva(userId);
                 });
                 iniciarBtn.disabled = false;
@@ -60,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Erro ao verificar relacionamento:", error);
         });
     }
+    
 
     function iniciarRelacionamento(userId) {
         db.collection("relacionamento").doc(userId).get().then(doc => {
@@ -69,10 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
                 db.collection("relacionamento").doc(userId).update({
                     dataInicio: firebase.firestore.Timestamp.now(),
-                    foto: fotoExistente // Não sobrescreve a foto já salva
+                    foto: fotoExistente // Evita sobrescrever com vazio
                 }).then(() => {
                     console.log("✅ Relacionamento iniciado sem perder a foto!");
-                    carregarRelacionamento(userId); // Recarrega os dados após iniciar
+                    carregarRelacionamento(userId);
                 }).catch(error => {
                     console.error("❌ Erro ao iniciar relacionamento:", error);
                 });
@@ -83,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Erro ao buscar relacionamento antes de iniciar:", error);
         });
     }
+    
     
     function carregarRelacionamento(userId) {
         db.collection("relacionamento").doc(userId).get().then(doc => {

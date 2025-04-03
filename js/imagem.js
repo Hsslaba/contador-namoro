@@ -130,8 +130,16 @@ async function carregarImagem(userId) {
         if (doc.exists) {
             const data = doc.data();
             if (data.foto) {
-                console.log("🔹 Imagem carregada do Firestore:", data.foto);
-                document.getElementById("casal-img").src = data.foto;
+                console.log("🔹 Tentando carregar imagem:", data.foto);
+                const imgElement = document.getElementById("casal-img");
+
+                imgElement.src = data.foto;
+
+                // Se a imagem falhar, tenta recarregar
+                imgElement.onerror = () => {
+                    console.error("❌ Erro ao carregar imagem! Tentando novamente...");
+                    setTimeout(() => carregarImagem(userId), 1000); // Recarrega após 1s
+                };
             } else {
                 console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
             }
@@ -142,3 +150,4 @@ async function carregarImagem(userId) {
         console.error("❌ Erro ao buscar imagem no Firestore:", error);
     }
 }
+
