@@ -4,26 +4,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     const downloadBtn = document.getElementById("download");
     const casalImg = document.getElementById("casal-img");
 
-    // 🔹 Carregar imagem do Firestore
-    await carregarImagem();
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            await carregarImagem(user.uid);
+        }
+    });
 
-    // Evento de upload
     uploadBtn.addEventListener("click", () => {
         fotoInput.click();
     });
 
-    // Evento quando uma imagem é selecionada
     fotoInput.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Verifica se é uma imagem válida
         if (!file.type.match("image.*")) {
             alert("Por favor, selecione uma imagem válida.");
             return;
         }
 
-        // Verifica o tamanho (máximo 5MB)
         if (file.size > 5 * 1024 * 1024) {
             alert("Arquivo muito grande. O tamanho máximo é 5MB.");
             return;
@@ -33,17 +32,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         reader.onload = async (e) => {
             casalImg.src = e.target.result;
 
-            // Enviar para o Imgur e salvar no Firestore
-            const imageUrl = await salvarImagem(file);
-            if (imageUrl) {
-                console.log("Imagem enviada para o Imgur:", imageUrl);
-                await salvarNoFirestore(imageUrl);
+            const user = auth.currentUser;
+            if (user) {
+                const imageUrl = await salvarImagem(file, user.uid);
+                if (imageUrl) {
+                    console.log("Imagem enviada para o Imgur:", imageUrl);
+                    await salvarNoFirestore(imageUrl, user.uid);
+                }
             }
         };
         reader.readAsDataURL(file);
     });
 
-    // Evento de download da imagem
     downloadBtn.addEventListener("click", () => {
         const fotoContainer = document.getElementById("foto-container");
 
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-async function salvarImagem(file) {
+async function salvarImagem(file, userId) {
     const CLIENT_ID = "8cee1fdb46b14d3";
     
     const formData = new FormData();
@@ -80,12 +80,11 @@ async function salvarImagem(file) {
             const imageUrl = data.data.link;
             console.log("Imagem enviada para o Imgur:", imageUrl);
 
-            // Salvar no Firestore
-            return db.collection("relacionamento").doc("contador").update({
+            return db.collection("usuarios").doc(userId).update({
                 foto: imageUrl
             }).then(() => {
                 console.log("✅ URL da imagem salva no Firestore!");
-                carregarFotoSalva(); // Atualiza a imagem sem precisar recarregar a página
+                carregarImagem(userId);
                 return imageUrl;
             }).catch(error => {
                 console.error("❌ Erro ao salvar URL no Firestore:", error);
@@ -100,24 +99,20 @@ async function salvarImagem(file) {
     }
 }
 
-
-// 🔹 Salvar link da imagem no Firestore
-async function salvarNoFirestore(imageUrl) {
+async function salvarNoFirestore(imageUrl, userId) {
     try {
-        await db.collection("relacionamento").doc("contador").update({
+        await db.collection("usuarios").doc(userId).update({
             foto: imageUrl,
         });
-
         console.log("✅ Link salvo no Firestore com sucesso!");
     } catch (error) {
         console.error("❌ Erro ao salvar link no Firestore:", error);
     }
 }
 
-// 🔹 Carregar imagem salva no Firestore
-async function carregarImagem() {
+async function carregarImagem(userId) {
     try {
-        const doc = await db.collection("relacionamento").doc("contador").get();
+        const doc = await db.collection("usuarios").doc(userId).get();
 
         if (doc.exists) {
             const data = doc.data();
@@ -128,7 +123,7 @@ async function carregarImagem() {
                 console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
             }
         } else {
-            console.warn("⚠ Documento 'contador' não encontrado.");
+            console.warn("⚠ Documento do usuário não encontrado.");
         }
     } catch (error) {
         console.error("❌ Erro ao buscar imagem no Firestore:", error);

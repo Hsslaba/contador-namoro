@@ -17,17 +17,20 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.add('mobile');
     }
     
-    // Adiciona eventos para mostrar mensagens especiais em datas comemorativas
-    verificarDatasEspeciais();
+    // Aguarda a autenticação do usuário antes de verificar datas especiais
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            verificarDatasEspeciais(user.uid);
+        }
+    });
 });
 
-function verificarDatasEspeciais() {
-    // Esta função verificará datas especiais quando o contador estiver funcionando
+function verificarDatasEspeciais(userId) {
     const hoje = new Date();
     const dia = hoje.getDate();
     const mes = hoje.getMonth() + 1; // Janeiro é 0
     
-    db.collection("relacionamento").doc("contador").get().then(doc => {
+    db.collection("relacionamento").doc(userId).get().then(doc => {
         if (!doc.exists) return;
         
         const dataInicio = doc.data().dataInicio.toDate();

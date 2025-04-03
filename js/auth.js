@@ -5,8 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const uploadBtn = document.getElementById("upload-foto");
     const downloadBtn = document.getElementById("download");
 
-    function carregarFotoSalva() {
-        db.collection("relacionamento").doc("contador").get().then(doc => {
+    function carregarFotoSalva(userId) {
+        db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists && doc.data().foto) {
                 const imageUrl = doc.data().foto;
                 console.log("🔹 URL da imagem recuperada do Firestore:", imageUrl);
@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 imgElement.src = imageUrl;
             } else {
                 console.warn("⚠ Nenhuma imagem encontrada no Firestore.");
+                document.getElementById("casal-img").src = ""; // Remover imagem se não houver
             }
         }).catch(error => {
             console.error("Erro ao carregar imagem:", error);
@@ -24,20 +25,63 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.carregarFotoSalva = carregarFotoSalva;
 
-    // Função local que tem acesso a todos os elementos
-    function verificarRelacionamentoLocal() {
-        db.collection("relacionamento").doc("contador").get().then(doc => {
+    function verificarOuCriarRelacionamento(userId) {
+        const userRef = db.collection("relacionamento").doc(userId);
+    
+        userRef.get().then(doc => {
+            if (doc.exists) {
+                console.log("🔹 Relacionamento encontrado para o usuário:", userId);
+                carregarRelacionamento(userId);
+            } else {
+                console.log("⚠ Nenhum relacionamento encontrado. Criando um novo...");
+                criarNovoRelacionamento(userId);
+            }
+        }).catch(error => {
+            console.error("Erro ao buscar relacionamento:", error);
+        });
+    }
+
+    function criarNovoRelacionamento(userId) {
+        db.collection("relacionamento").doc(userId).set({
+            dataInicio: firebase.firestore.Timestamp.now(),
+            foto: "" // Começa sem foto
+        }).then(() => {
+            console.log("✅ Novo relacionamento criado para o usuário:", userId);
+            carregarRelacionamento(userId);
+        }).catch(error => {
+            console.error("Erro ao criar novo relacionamento:", error);
+        });
+    }
+
+    function carregarRelacionamento(userId) {
+        db.collection("relacionamento").doc(userId).get().then(doc => {
+            if (doc.exists) {
+                const dados = doc.data();
+                atualizarContador(dados.dataInicio.toDate());
+    
+                if (dados.foto) {
+                    document.getElementById("casal-img").src = dados.foto;
+                } else {
+                    console.warn("⚠ Nenhuma imagem encontrada.");
+                    document.getElementById("casal-img").src = ""; // Evita erro ao carregar imagem
+                }
+            }
+        }).catch(error => {
+            console.error("Erro ao carregar relacionamento:", error);
+        });
+    }
+
+    function verificarRelacionamentoLocal(userId) {
+        db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists) {
                 atualizarContador(doc.data().dataInicio.toDate());
                 iniciarBtn.disabled = true;
                 iniciarBtn.textContent = "Relacionamento já iniciado";
                 
-                // Habilita o botão de upload de foto e download
                 uploadBtn.disabled = false;
                 downloadBtn.disabled = false;
                 
-                // Verifica se há uma foto salva
-                carregarFotoSalva();
+                carregarFotoSalva(userId);
             } else {
                 document.getElementById("tempo").textContent = "Nenhum relacionamento iniciado";
                 document.getElementById("detalhes").textContent = "Clique no botão para iniciar";
@@ -54,9 +98,8 @@ document.addEventListener("DOMContentLoaded", () => {
             loginBtn.style.display = "none";
             logoutBtn.style.display = "block";
             iniciarBtn.disabled = false;
-            
-            // Usa a função local que tem acesso ao botão
-            verificarRelacionamentoLocal();
+
+            verificarOuCriarRelacionamento(user.uid);
         } else {
             console.log("Nenhum usuário logado.");
             loginBtn.style.display = "block";
@@ -68,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("tempo").textContent = "Faça login para começar";
             document.getElementById("detalhes").textContent = "";
             
-            // Reseta o overlay da imagem
             document.getElementById("anos").textContent = "0 anos.";
             document.getElementById("meses").textContent = "0 meses.";
             document.getElementById("dias").textContent = "0 dias.";
@@ -93,15 +135,18 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     
-    // Se precisar chamar esta função de outro lugar, defina uma versão global
-    window.verificarRelacionamento = verificarRelacionamentoLocal;
-
+    window.verificarRelacionamento = () => {
+        const user = auth.currentUser;
+        if (user) {
+            verificarRelacionamentoLocal(user.uid);
+        } else {
+            console.log("Usuário não autenticado.");
+        }
+    };
 });
 
-// Se precisar manter a função global para compatibilidade com código existente
 function verificarRelacionamento() {
     document.getElementById("iniciar")?.disabled 
         ? console.log("Botão já está desabilitado") 
         : window.verificarRelacionamento?.();
 }
-
