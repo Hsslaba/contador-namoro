@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const iniciarBtn = document.getElementById("iniciar");
     const tempoEl = document.getElementById("tempo");
     const detalhesEl = document.getElementById("detalhes");
+    const casalImg = document.getElementById("casal-img");
 
     iniciarBtn.addEventListener("click", () => {
         const user = auth.currentUser;
@@ -18,7 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 dataInicio: firebase.firestore.Timestamp.fromDate(dataAtual),
                 criadoPor: user.displayName,
                 email: user.email,
-                dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+                dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
+                foto: ""
             })
             .then(() => {
                 atualizarContador(dataAtual);

@@ -80,7 +80,7 @@ async function salvarImagem(file, userId) {
             const imageUrl = data.data.link;
             console.log("Imagem enviada para o Imgur:", imageUrl);
 
-            return db.collection("usuarios").doc(userId).update({
+            return db.collection("relacionamento").doc(userId).update({
                 foto: imageUrl
             }).then(() => {
                 console.log("✅ URL da imagem salva no Firestore!");
@@ -101,7 +101,7 @@ async function salvarImagem(file, userId) {
 
 async function salvarNoFirestore(imageUrl, userId) {
     try {
-        await db.collection("usuarios").doc(userId).update({
+        await db.collection("relacionamento").doc(userId).update({
             foto: imageUrl,
         });
         console.log("✅ Link salvo no Firestore com sucesso!");
@@ -112,7 +112,7 @@ async function salvarNoFirestore(imageUrl, userId) {
 
 async function carregarImagem(userId) {
     try {
-        const doc = await db.collection("usuarios").doc(userId).get();
+        const doc = await db.collection("relacionamento").doc(userId).get();
 
         if (doc.exists) {
             const data = doc.data();
