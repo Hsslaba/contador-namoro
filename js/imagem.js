@@ -46,16 +46,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     downloadBtn.addEventListener("click", () => {
         const fotoContainer = document.getElementById("foto-container");
-
-        html2canvas(fotoContainer).then((canvas) => {
-            const imgUrl = canvas.toDataURL("image/jpeg");
-
+        const imgElement = fotoContainer.querySelector("img");
+    
+        if (!imgElement || !imgElement.complete) {
+            alert("Aguarde a imagem carregar completamente antes de baixar.");
+            return;
+        }
+    
+        html2canvas(fotoContainer, {
+            useCORS: true,
+            allowTaint: false, // Taint pode causar problemas com imagens externas
+            scale: 2,
+        }).then((canvas) => {
+            const imgUrl = canvas.toDataURL("image/jpeg", 1.0);
+    
             const link = document.createElement("a");
             link.href = imgUrl;
             link.download = "nosso-relacionamento.jpg";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }).catch((error) => {
+            console.error("Erro ao gerar imagem:", error);
+            alert("Erro ao gerar a imagem. Tente novamente.");
         });
     });
 });
