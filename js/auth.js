@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists) {
                 const dados = doc.data();
+                
                 if (dados.dataInicio) {
                     atualizarContador(dados.dataInicio.toDate());
                     iniciarBtn.disabled = true;
@@ -39,14 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 uploadBtn.disabled = false;
                 downloadBtn.disabled = false;
-
                 carregarFotoSalva(userId);
             } else {
-                console.log("⚠ Nenhum relacionamento encontrado. Aguardando usuário iniciar.");
+                console.log("⚠ Nenhum relacionamento encontrado. Criando entrada só para imagem...");
+                db.collection("relacionamento").doc(userId).set({ foto: "" }, { merge: true }).then(() => {
+                    carregarFotoSalva(userId);
+                });
                 iniciarBtn.disabled = false;
-                uploadBtn.disabled = false; // Permitir upload antes de iniciar o relacionamento
+                uploadBtn.disabled = false;
                 downloadBtn.disabled = true;
-                carregarFotoSalva(userId);
             }
         }).catch(error => {
             console.error("Erro ao verificar relacionamento:", error);
@@ -54,9 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function iniciarRelacionamento(userId) {
-        db.collection("relacionamento").doc(userId).set({
-            dataInicio: firebase.firestore.Timestamp.now(),
-            foto: "" // Começa sem foto
+        db.collection("relacionamento").doc(userId).update({
+            dataInicio: firebase.firestore.Timestamp.now()
         }).then(() => {
             console.log("✅ Relacionamento iniciado para o usuário:", userId);
             carregarRelacionamento(userId);
