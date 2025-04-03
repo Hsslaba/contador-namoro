@@ -25,11 +25,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.carregarFotoSalva = carregarFotoSalva;
 
+    function salvarFoto(userId, imageUrl) {
+        db.collection("relacionamento").doc(userId).set({ foto: imageUrl }, { merge: true })
+            .then(() => console.log("✅ Foto salva no Firestore!"))
+            .catch(error => console.error("❌ Erro ao salvar a foto:", error));
+    }
+
     function verificarRelacionamentoLocal(userId) {
         db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists) {
                 const dados = doc.data();
-                
+
                 if (dados.dataInicio) {
                     atualizarContador(dados.dataInicio.toDate());
                     iniciarBtn.disabled = true;
@@ -43,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 carregarFotoSalva(userId);
             } else {
                 console.log("⚠ Nenhum relacionamento encontrado. Criando entrada só para imagem...");
-                db.collection("relacionamento").doc(userId).set({ foto: "" }, { merge: true }).then(() => {
+                db.collection("relacionamento").doc(userId).set({}, { merge: true }).then(() => {
                     carregarFotoSalva(userId);
                 });
                 iniciarBtn.disabled = false;
@@ -140,6 +146,31 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } else {
             alert("Você precisa estar logado para iniciar um relacionamento.");
+        }
+    });
+
+    uploadBtn.addEventListener("change", async (event) => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("Você precisa estar logado para salvar uma imagem!");
+            return;
+        }
+
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const storageRef = firebase.storage().ref();
+        const fileRef = storageRef.child(`relacionamentos/${user.uid}/${file.name}`);
+
+        try {
+            const snapshot = await fileRef.put(file);
+            const imageUrl = await snapshot.ref.getDownloadURL();
+
+            console.log("✅ Imagem enviada com sucesso:", imageUrl);
+            salvarFoto(user.uid, imageUrl);
+            document.getElementById("casal-img").src = imageUrl;
+        } catch (error) {
+            console.error("❌ Erro ao enviar a imagem:", error);
         }
     });
 
