@@ -62,16 +62,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function iniciarRelacionamento(userId) {
-        db.collection("relacionamento").doc(userId).update({
-            dataInicio: firebase.firestore.Timestamp.now()
-        }).then(() => {
-            console.log("✅ Relacionamento iniciado para o usuário:", userId);
-            carregarRelacionamento(userId);
+        db.collection("relacionamento").doc(userId).get().then(doc => {
+            if (doc.exists) {
+                const dados = doc.data();
+                const fotoExistente = dados.foto || ""; // Mantém a foto salva
+    
+                db.collection("relacionamento").doc(userId).update({
+                    dataInicio: firebase.firestore.Timestamp.now(),
+                    foto: fotoExistente // Mantém a imagem ao iniciar o relacionamento
+                }).then(() => {
+                    console.log("✅ Relacionamento iniciado sem perder a foto!");
+                    carregarRelacionamento(userId);
+                }).catch(error => {
+                    console.error("❌ Erro ao iniciar relacionamento:", error);
+                });
+            } else {
+                console.error("⚠ Erro: Tentando iniciar um relacionamento sem documento existente.");
+            }
         }).catch(error => {
-            console.error("Erro ao iniciar relacionamento:", error);
+            console.error("Erro ao buscar relacionamento antes de iniciar:", error);
         });
     }
-
+    
     function carregarRelacionamento(userId) {
         db.collection("relacionamento").doc(userId).get().then(doc => {
             if (doc.exists) {
